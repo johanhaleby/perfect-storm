@@ -32,12 +32,10 @@ public class FindTweetContainingStringBolt extends BaseRichBolt {
             System.out.printf("### Found tweet containing word '%s' (Tweet: '%s' by '%s')\n", wordToLookFor, tweet, author);
         }
 
-//        outputCollector.emit(new Values(timestamp, retweets));
         outputCollector.ack(tuple);
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-//        outputFieldsDeclarer.declare(new Fields("tweet"));
     }
 }
