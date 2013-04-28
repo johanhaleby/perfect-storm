@@ -3,7 +3,6 @@ package com.jayway.perfectstorm;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.topology.TopologyBuilder;
-import backtype.storm.utils.Utils;
 import com.jayway.perfectstorm.esper.EsperContext;
 import com.jayway.perfectstorm.storm.bolt.countrycount.GeolocationToCountryNameBolt;
 import com.jayway.perfectstorm.storm.bolt.countrycount.MostFrequentCountryBolt;
@@ -11,20 +10,31 @@ import com.jayway.perfectstorm.storm.bolt.countrycount.MostFrequentCountryPresen
 import com.jayway.perfectstorm.storm.bolt.tps.CalculateTweetsPerSecondBolt;
 import com.jayway.perfectstorm.storm.bolt.tps.PrintTweetsPerSecondBolt;
 import com.jayway.perfectstorm.storm.spout.TwitterStreamSpout;
+import com.jayway.perfectstorm.vertx.VertxServer;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 import static com.jayway.perfectstorm.storm.bolt.countrycount.MostFrequentCountryBolt.MostFrequentCountryEsperConfig;
 import static com.jayway.perfectstorm.storm.bolt.tps.CalculateTweetsPerSecondBolt.CalculateTweetsPerSecondEsperConfig;
 
 public class Bootstrap {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         final String username = args[0];
         final String password = args[1];
 
         TopologyBuilder builder = new TopologyBuilder();
 
+        // Vertx
+        VertxServer vertxServer = new VertxServer();
+        vertxServer.start();
+
         // Esper
         EsperContext.initializeWith(new MostFrequentCountryEsperConfig(), new CalculateTweetsPerSecondEsperConfig());
+
+
+        // Storm
 
         // Twitter country count
         TwitterStreamSpout twitterStreamSpout = new TwitterStreamSpout(username, password);
@@ -52,8 +62,23 @@ public class Bootstrap {
         LocalCluster cluster = new LocalCluster();
 
         cluster.submitTopology("twitter-test", conf, builder.createTopology());
-        Utils.sleep(120000);
+
+
+        // Wait until 'quit'
+        System.out.println("Write 'quit' to quit");
+        InputStreamReader converter = new InputStreamReader(System.in);
+        BufferedReader in = new BufferedReader(converter);
+        String command = "";
+        while (!(command.equals("quit"))) {
+            command = in.readLine();
+            if (command.equals("quit")) {
+                break;
+            }
+        }
+
+        // Shutdown everything
         cluster.shutdown();
         EsperContext.shutdown();
+        vertxServer.stop();
     }
 }

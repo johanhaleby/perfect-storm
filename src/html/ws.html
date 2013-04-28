@@ -1,0 +1,48 @@
+<html>
+<head><title>Web Socket Test</title></head>
+<body>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        // Socket
+        var socket;
+        if (window.WebSocket) {
+            socket = new WebSocket("ws://localhost:8080/subscribe");
+            socket.onmessage = function (event) {
+                $('#row').before('<p id="row">' + event.data + '</p>');
+            }
+            socket.onopen = function (event) {
+            };
+            socket.onclose = function (event) {
+            };
+        } else {
+            alert("Your browser does not support Websockets. (Use Chrome)");
+        }
+
+        var send = function (message) {
+            if (!window.WebSocket) {
+                return;
+            }
+            if (socket.readyState == WebSocket.OPEN) {
+                socket.send(message);
+            } else {
+                alert("The socket is not open.");
+            }
+        };
+
+
+        // Page
+        $("#send-button").click(function () {
+            var text = $("#text").val();
+            send(text);
+        });
+    });
+</script>
+
+<form onsubmit="return false;">
+    <input type="text" name="message" value="Hello, World!" x-webkit-speech id="text"/>
+    <input type="button" value="Send Web Socket Data" id="send-button"/>
+</form>
+<p id="row"/>
+</body>
+</html>
