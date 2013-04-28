@@ -1,18 +1,38 @@
 package com.jayway.perfectstorm.vertx;
 
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.HttpServer;
 import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.http.ServerWebSocket;
+import org.vertx.java.core.json.JsonObject;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class VertxServer {
 
-    private List<ServerWebSocket> connections = new CopyOnWriteArrayList<ServerWebSocket>();
+    private final ScheduledExecutorService executorService;
+    private final HazelcastInstance hazelcast;
+
+    public VertxServer() {
+        hazelcast = Hazelcast.newHazelcastInstance();
+        BlockingQueue<Map<String, Object>> inputQueue = hazelcast.getQueue("tweets-per-second");
+        executorService = Executors.newScheduledThreadPool(1);
+        executorService.scheduleAtFixedRate(new QueueBroadcaster(inputQueue), 200, 50, MILLISECONDS);
+    }
+
+    private List<ServerWebSocket> connections = new CopyOnWriteArrayList<>();
     private Vertx vertx;
 
     public void start() {
@@ -49,11 +69,37 @@ public class VertxServer {
 
     public void stop() {
         vertx.stop();
+        hazelcast.getLifecycleService().shutdown();
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(1, SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void broadcast(String message) {
         for (ServerWebSocket connection : connections) {
             connection.writeTextFrame(message);
+        }
+    }
+
+    private class QueueBroadcaster implements Runnable {
+        private final BlockingQueue<Map<String, Object>> inputQueue;
+
+        public QueueBroadcaster(BlockingQueue<Map<String, Object>> inputQueue) {
+            this.inputQueue = inputQueue;
+        }
+
+        @Override
+        public void run() {
+            final Map<String, Object> object = inputQueue.poll();
+            if (object == null) {
+                return;
+            }
+
+            final String json = new JsonObject(object).encode();
+            broadcast(json);
         }
     }
 }
