@@ -22,17 +22,16 @@
             ['France', 600],
             ['RU', 700]
         ];
+
         if (data !== undefined) {
             var dataArray = $.makeArray(data);
             var countriesAndTweets = $.map(dataArray, function (val, index) {
                 var countryName = val.countryName;
                 var tweetCount = val.tweetCount;
-                return [countryName, tweetCount]
+                // TODO Ugly!! Fix!!
+                array2.push([countryName, tweetCount]);
+                return null;
             });
-
-            for (var pair in countriesAndTweets) {
-                array2.push([pair.countryName, pair.tweetCount]);
-            }
         }
 
         var dataTable = google.visualization.arrayToDataTable(array2);
@@ -100,6 +99,9 @@
 <div style="float: left">Tweets per second:&nbsp;</div>
 <div id="current-tps"></div>
 <canvas id="tps-canvas" width="800" height="200"></canvas>
+<br/>
+
+<div style="float: left">Number of tweets per country:</div>
 <br/>
 
 <div id="tweets-per-country"></div>

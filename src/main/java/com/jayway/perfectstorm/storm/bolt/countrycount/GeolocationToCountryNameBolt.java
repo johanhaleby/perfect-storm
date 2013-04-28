@@ -26,7 +26,10 @@ public class GeolocationToCountryNameBolt extends BaseRichBolt {
         final double latitude = tuple.getDouble(0);
         final double longitude = tuple.getDouble(1);
 
-        final String countryName = get("http://ws.geonames.org/findNearbyPlaceName?lat={lat}&lng={long}", latitude, longitude).xmlPath().getString("geonames.geoname.countryName");
+//        final String countryName = get("http://ws.geonames.org/findNearbyPlaceName?lat={lat}&lng={long}", latitude, longitude).xmlPath().getString("geonames.geoname.countryName");
+
+        final String countryName = get("http://maps.googleapis.com/maps/api/geocode/json?latlng={lat},{long}&sensor=false", latitude, longitude).
+                jsonPath().getString("results.address_components.flatten().find { it.types.flatten().contains('country') }?.long_name");
 
         outputCollector.emit(tuple(countryName));
 
