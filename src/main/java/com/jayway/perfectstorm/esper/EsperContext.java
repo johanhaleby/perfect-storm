@@ -2,45 +2,49 @@ package com.jayway.perfectstorm.esper;
 
 import com.espertech.esper.client.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class EsperContext {
-    private final EPServiceProvider esperProvider;
-    private final String eventTypeName;
+    private static EPServiceProvider esperProvider;
 
-    private EsperContext(EPServiceProvider esperProvider, String eventTypeName) {
-        this.esperProvider = esperProvider;
-        this.eventTypeName = eventTypeName;
-    }
-
-    public static EsperContext create(UpdateListener listener, String eplStatement, String eventTypeName, String... properties) {
+    public static void initializeWith(EsperConfig... esperConfigs) {
         Configuration configuration = new Configuration();
+        List<String> epls = new ArrayList<>();
 
-        Map<String, Object> props = new HashMap<>();
-        for (String property : properties) {
-            props.put(property, Object.class);
+        for (EsperConfig config : esperConfigs) {
+            Map<String, Object> props = new HashMap<>();
+            for (String property : config.getProperties()) {
+                props.put(property, Object.class);
+            }
+            configuration.addEventType(config.getEventTypeName(), props);
+            epls.add(config.getEpl());
         }
-        configuration.addEventType(eventTypeName, props);
-
         final EPServiceProvider esperProvider = EPServiceProviderManager.getProvider(null, configuration);
-
         esperProvider.initialize();
         EPAdministrator esperAdmin = esperProvider.getEPAdministrator();
-        EPStatement epStatement = esperAdmin.createEPL(eplStatement);
-        epStatement.addListener(listener);
-        return new EsperContext(esperProvider, eventTypeName);
+        for (String epl : epls) {
+            esperAdmin.createEPL(epl, epl);
+        }
+        EsperContext.esperProvider = esperProvider;
     }
 
 
-    public void shutdown() {
+    public static void shutdown() {
         if (!esperProvider.isDestroyed()) {
             esperProvider.destroy();
         }
     }
 
-    public void sendEvent(Map<String, Object> data) {
+    public static void sendEvent(Map<String, Object> data, String eventTypeName) {
         esperProvider.getEPRuntime().sendEvent(data, eventTypeName);
+    }
+
+    public static void addListener(UpdateListener updateListener, String epl) {
+        final EPStatement epStatement = esperProvider.getEPAdministrator().getStatement(epl);
+        epStatement.addListener(updateListener);
     }
 }
 

@@ -8,34 +8,41 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
+import com.jayway.perfectstorm.esper.EsperConfig;
 import com.jayway.perfectstorm.esper.EsperContext;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static backtype.storm.utils.Utils.tuple;
+import static com.jayway.perfectstorm.storm.bolt.countrycount.MostFrequentCountryBolt.MostFrequentCountryEsperConfig.*;
 import static java.lang.String.format;
 
 public class MostFrequentCountryBolt extends BaseRichBolt implements UpdateListener {
-    private static final String EVENT_TYPE_NAME = "Countries";
 
-    private static final String NUMBER_OF_TWEETS_FROM_COUNTRY = "noOfTweetsFromCountry";
-    private static final String COUNTRY_OUTPUT_NAME = "countryName";
-    private static final String COUNTRY_INPUT_NAME = "country";
-    // http://esper.codehaus.org/esper-4.2.0/doc/reference/en/html/epl_clauses.html
-    private static final String ESPER_QUERY = format(
-            "select count(*) as %s, %s as %s from %s.win:time_batch(10 sec) group by country order by %s desc",
-            NUMBER_OF_TWEETS_FROM_COUNTRY, COUNTRY_INPUT_NAME, COUNTRY_OUTPUT_NAME, EVENT_TYPE_NAME, NUMBER_OF_TWEETS_FROM_COUNTRY
-    );
+    public static class MostFrequentCountryEsperConfig extends EsperConfig {
+        static final String EVENT_TYPE_NAME = "Countries";
 
+        static final String NUMBER_OF_TWEETS_FROM_COUNTRY = "noOfTweetsFromCountry";
+        static final String COUNTRY_OUTPUT_NAME = "countryName";
+        static final String COUNTRY_INPUT_NAME = "country";
+        // http://esper.codehaus.org/esper-4.2.0/doc/reference/en/html/epl_clauses.html
+        static final String EPL = format(
+                "select count(*) as %s, %s as %s from %s.win:time_batch(10 sec) group by country order by %s desc",
+                NUMBER_OF_TWEETS_FROM_COUNTRY, COUNTRY_INPUT_NAME, COUNTRY_OUTPUT_NAME, EVENT_TYPE_NAME, NUMBER_OF_TWEETS_FROM_COUNTRY
+        );
+
+        public MostFrequentCountryEsperConfig() {
+            super(EPL, EVENT_TYPE_NAME, NUMBER_OF_TWEETS_FROM_COUNTRY, COUNTRY_OUTPUT_NAME, COUNTRY_INPUT_NAME);
+        }
+    }
 
     private transient OutputCollector outputCollector;
-    private transient EsperContext esperContext;
 
     @Override
     public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
         this.outputCollector = outputCollector;
-        esperContext = EsperContext.create(this, ESPER_QUERY, EVENT_TYPE_NAME, NUMBER_OF_TWEETS_FROM_COUNTRY, COUNTRY_OUTPUT_NAME, COUNTRY_INPUT_NAME);
+        EsperContext.addListener(this, EPL);
     }
 
     @Override
@@ -45,7 +52,7 @@ public class MostFrequentCountryBolt extends BaseRichBolt implements UpdateListe
         Map<String, Object> data = new HashMap<>();
         data.put(COUNTRY_INPUT_NAME, countryName);
 
-        esperContext.sendEvent(data);
+        EsperContext.sendEvent(data, EVENT_TYPE_NAME);
 
         outputCollector.ack(tuple);
     }
@@ -64,14 +71,6 @@ public class MostFrequentCountryBolt extends BaseRichBolt implements UpdateListe
             final Object numberOfTweetsForCountry = event.get(NUMBER_OF_TWEETS_FROM_COUNTRY);
             final Object countryName = event.get(COUNTRY_OUTPUT_NAME);
             outputCollector.emit(tuple(numberOfTweetsForCountry, countryName));
-        }
-    }
-
-
-    @Override
-    public void cleanup() {
-        if (esperContext != null) {
-            esperContext.shutdown();
         }
     }
 }
