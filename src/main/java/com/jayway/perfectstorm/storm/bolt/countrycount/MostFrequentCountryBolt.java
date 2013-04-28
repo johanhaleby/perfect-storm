@@ -11,7 +11,9 @@ import com.espertech.esper.client.UpdateListener;
 import com.jayway.perfectstorm.esper.EsperConfig;
 import com.jayway.perfectstorm.esper.EsperContext;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static backtype.storm.utils.Utils.tuple;
@@ -59,7 +61,8 @@ public class MostFrequentCountryBolt extends BaseRichBolt implements UpdateListe
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields(NUMBER_OF_TWEETS_FROM_COUNTRY, COUNTRY_OUTPUT_NAME));
+        outputFieldsDeclarer.declareStream("number-country", new Fields(NUMBER_OF_TWEETS_FROM_COUNTRY, COUNTRY_OUTPUT_NAME));
+        outputFieldsDeclarer.declareStream("country-batch", new Fields("country-batch"));
     }
 
     @Override
@@ -67,10 +70,17 @@ public class MostFrequentCountryBolt extends BaseRichBolt implements UpdateListe
         if (newEvents == null) {
             return;
         }
+
+        List<Map<String, Object>> batch = new ArrayList<>();
         for (EventBean event : newEvents) {
             final Object numberOfTweetsForCountry = event.get(NUMBER_OF_TWEETS_FROM_COUNTRY);
-            final Object countryName = event.get(COUNTRY_OUTPUT_NAME);
-            outputCollector.emit(tuple(numberOfTweetsForCountry, countryName));
+            final String countryName = (String) event.get(COUNTRY_OUTPUT_NAME);
+            final Map<String, Object> map = new HashMap<>();
+            map.put("countryName", countryName);
+            map.put("tweetCount", numberOfTweetsForCountry);
+            batch.add(map);
+            outputCollector.emit("number-country", tuple(numberOfTweetsForCountry, countryName));
         }
+        outputCollector.emit("country-batch", tuple(batch));
     }
 }

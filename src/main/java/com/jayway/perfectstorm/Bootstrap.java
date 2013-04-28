@@ -7,6 +7,7 @@ import com.jayway.perfectstorm.esper.EsperContext;
 import com.jayway.perfectstorm.storm.bolt.countrycount.GeolocationToCountryNameBolt;
 import com.jayway.perfectstorm.storm.bolt.countrycount.MostFrequentCountryBolt;
 import com.jayway.perfectstorm.storm.bolt.countrycount.MostFrequentCountryPresenterBolt;
+import com.jayway.perfectstorm.storm.bolt.countrycount.MostFrequentCountryPublisherBolt;
 import com.jayway.perfectstorm.storm.bolt.tps.CalculateTweetsPerSecondBolt;
 import com.jayway.perfectstorm.storm.bolt.tps.PrintTweetsPerSecondBolt;
 import com.jayway.perfectstorm.storm.spout.TwitterStreamSpout;
@@ -41,6 +42,7 @@ public class Bootstrap {
         GeolocationToCountryNameBolt geolocationToCountryNameBolt = new GeolocationToCountryNameBolt();
         MostFrequentCountryBolt mostFrequentCountryBolt = new MostFrequentCountryBolt();
         MostFrequentCountryPresenterBolt mostFrequentCountryPresenterBolt = new MostFrequentCountryPresenterBolt();
+        MostFrequentCountryPublisherBolt mostFrequentCountryPublisherBolt = new MostFrequentCountryPublisherBolt();
 
         // Tweets per second
         CalculateTweetsPerSecondBolt calculateTweetsPerSecondBolt = new CalculateTweetsPerSecondBolt();
@@ -51,7 +53,8 @@ public class Bootstrap {
 
         builder.setBolt("location-to-country", geolocationToCountryNameBolt, 2).shuffleGrouping("twitter-stream", "tweet-geo");
         builder.setBolt("country-frequency", mostFrequentCountryBolt).shuffleGrouping("location-to-country");
-        builder.setBolt("presenter", mostFrequentCountryPresenterBolt).shuffleGrouping("country-frequency");
+        builder.setBolt("presenter", mostFrequentCountryPresenterBolt).shuffleGrouping("country-frequency", "number-country");
+        builder.setBolt("publisher", mostFrequentCountryPublisherBolt).shuffleGrouping("country-frequency", "country-batch");
 
         builder.setBolt("tps-calc", calculateTweetsPerSecondBolt).shuffleGrouping("twitter-stream", "tweet-stream");
         builder.setBolt("tps-print", printTweetsPerSecondBolt).shuffleGrouping("tps-calc");

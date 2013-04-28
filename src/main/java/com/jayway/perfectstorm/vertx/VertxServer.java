@@ -27,9 +27,11 @@ public class VertxServer {
 
     public VertxServer() {
         hazelcast = Hazelcast.newHazelcastInstance();
-        BlockingQueue<Map<String, Object>> inputQueue = hazelcast.getQueue("tweets-per-second");
-        executorService = Executors.newScheduledThreadPool(1);
-        executorService.scheduleAtFixedRate(new QueueBroadcaster(inputQueue), 200, 50, MILLISECONDS);
+        BlockingQueue<Map<String, Object>> tpsQueue = hazelcast.getQueue("tweets-per-second");
+        BlockingQueue<Map<String, Object>> countryAndTweetFrequencyQueue = hazelcast.getQueue("country-frequency");
+        executorService = Executors.newScheduledThreadPool(2);
+        executorService.scheduleAtFixedRate(new QueueBroadcaster(tpsQueue), 200, 50, MILLISECONDS);
+        executorService.scheduleAtFixedRate(new QueueBroadcaster(countryAndTweetFrequencyQueue), 200, 50, MILLISECONDS);
     }
 
     private List<ServerWebSocket> connections = new CopyOnWriteArrayList<>();
