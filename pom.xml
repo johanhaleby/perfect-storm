@@ -10,7 +10,7 @@
         <twitter.version>3.0.3</twitter.version>
     </properties>
     <packaging>jar</packaging>
-    <description>Storm, Esper, Twitter, Vert.x, Websockets etc etc</description>
+    <description>Storm, Esper, Twitter, Vert.x, Websockets, Hazelcast etc etc</description>
 
     <dependencies>
         <dependency>

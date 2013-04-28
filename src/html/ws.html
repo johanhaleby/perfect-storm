@@ -1,15 +1,29 @@
 <html>
 <head><title>Web Socket Test</title></head>
 <body>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript" src="smoothie.js"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 <script type="text/javascript">
     $(function () {
+
+
+        //Smoothie
+        var smoothie = new SmoothieChart();
+        smoothie.streamTo(document.getElementById("tps-canvas"), 1000);
+        var tpsLine = new TimeSeries();
+        smoothie.addTimeSeries(tpsLine, { strokeStyle:'rgb(0, 255, 0)', fillStyle:'rgba(0, 255, 0, 0.4)', lineWidth:3 });
+
         // Socket
         var socket;
         if (window.WebSocket) {
             socket = new WebSocket("ws://localhost:8080/subscribe");
             socket.onmessage = function (event) {
-                $('#row').before('<p id="row">' + event.data + '</p>');
+                var data = event.data;
+                var json = $.parseJSON(data);
+                tpsLine.append(new Date().getTime(), json.tps);
+                $("#current-tps").text(json.tps);
+//                $('#row').before('<p id="row">' + json.tps + '</p>');
             }
             socket.onopen = function (event) {
             };
@@ -36,9 +50,13 @@
             var text = $("#text").val();
             send(text);
         });
+
     });
 </script>
 
+<div style="float: left">Tweets per second:&nbsp;</div><div id="current-tps"></div>
+<canvas id="tps-canvas" width="800" height="200"></canvas>
+<br/>
 <form onsubmit="return false;">
     <input type="text" name="message" value="Hello, World!" x-webkit-speech id="text"/>
     <input type="button" value="Send Web Socket Data" id="send-button"/>

@@ -30,7 +30,6 @@ public class PrintTweetsPerSecondBolt extends BaseRichBolt {
         final Long tps = tuple.getLong(0);
         System.out.printf("Tweets per second: %d\n", tps);
 
-
         Map<Object, Object> map = new HashMap<>();
         map.put("tps", tps);
         queue.offer(map);

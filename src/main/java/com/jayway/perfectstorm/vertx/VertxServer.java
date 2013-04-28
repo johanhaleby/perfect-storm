@@ -63,6 +63,7 @@ public class VertxServer {
         }).requestHandler(new Handler<HttpServerRequest>() {
             public void handle(HttpServerRequest req) {
                 if (req.path.equals("/")) req.response.sendFile("src/html/ws.html"); // Serve the html
+                if (req.path.equals("/smoothie.js")) req.response.sendFile("src/js/smoothie.js"); // Serve the html
             }
         }).listen(8080);
     }
