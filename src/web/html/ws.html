@@ -125,15 +125,15 @@
         <div class="span6">
             <div class="row-fluid">
                 <div class="span12">
-                    <div style="float: left">Tweets per second:&nbsp;</div>
-                    <div id="current-tps"></div>
+                    <div style="float: left" class="lead">Tweets per second:&nbsp;</div>
+                    <div id="current-tps" class="lead"></div>
                     <canvas id="tps-canvas" width="800" height="200"></canvas>
                 </div>
             </div>
             <div class="row-fluid">
                 <div class="span12">
                     <div class="row-fluid">
-                        <div class="span12">Number of tweets per country:</div>
+                        <div class="span12 lead">Number of tweets per country</div>
                     </div>
                     <div class="row-fluid">
                         <div id="tweets-per-country"></div>
@@ -144,10 +144,10 @@
         <div class="span6">
             <div class="row-fluid">
                 <div class="span12">
-                    <form class="form-search" onsubmit="return false;">
+                    <form class="form-search" style="margin-top: 5px" onsubmit="return false;">
                         <input type="text" name="message" value="Hello, World!" x-webkit-speech id="text" style="height: 30px;"
                                class="input-xlarge search-query"/>
-                        <input type="button" value="Send Web Socket Data" id="send-button" class="btn"/>
+                        <input type="button" value="Send Web Socket Data" id="send-button" class="btn btn-primary"/>
                     </form>
                     <p id="row"/>
                 </div>
