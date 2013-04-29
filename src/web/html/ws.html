@@ -87,11 +87,11 @@
             // Twitter feed
             var i = 0;
             $("#matching-tweets").ticker({
-                initialTimeout: 100,
-                mouseOnTimeout: 400,
-                mouseOffTimeout: 300,
-                scrollTime: 120,
-                fadeTime: 100,
+                initialTimeout: 1000,
+                mouseOnTimeout: 4000,
+                mouseOffTimeout: 3000,
+                scrollTime: 1200,
+                fadeTime: 1000,
                 fixContainer: true,
                 next: function (lastItem, nextItem) {
                     var tweet = tweets.pop();
@@ -154,7 +154,7 @@
             </div>
             <div class="row-fluid">
                 <div class="span12">
-                    <ul id="matching-tweets">
+                    <ul id="matching-tweets" style="height: 830px; overflow: hidden;">
                         <li>
                             <img src="http://www.gravatar.com/avatar/7483?s=48&d=identicon"/>
 
