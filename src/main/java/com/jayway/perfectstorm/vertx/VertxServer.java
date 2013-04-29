@@ -29,9 +29,11 @@ public class VertxServer {
         hazelcast = Hazelcast.newHazelcastInstance();
         BlockingQueue<Map<String, Object>> tpsQueue = hazelcast.getQueue("tweets-per-second");
         BlockingQueue<Map<String, Object>> countryAndTweetFrequencyQueue = hazelcast.getQueue("country-frequency");
+        BlockingQueue<Map<String, Object>> foundTweetsQueue = hazelcast.getQueue("found-tweets");
         executorService = Executors.newScheduledThreadPool(2);
-        executorService.scheduleAtFixedRate(new QueueBroadcaster(tpsQueue), 200, 50, MILLISECONDS);
-        executorService.scheduleAtFixedRate(new QueueBroadcaster(countryAndTweetFrequencyQueue), 200, 50, MILLISECONDS);
+        executorService.scheduleAtFixedRate(new QueueBroadcaster(tpsQueue), 100, 50, MILLISECONDS);
+        executorService.scheduleAtFixedRate(new QueueBroadcaster(countryAndTweetFrequencyQueue), 150, 50, MILLISECONDS);
+        executorService.scheduleAtFixedRate(new QueueBroadcaster(foundTweetsQueue), 200, 50, MILLISECONDS);
     }
 
     private List<ServerWebSocket> connections = new CopyOnWriteArrayList<>();
@@ -64,8 +66,15 @@ public class VertxServer {
             }
         }).requestHandler(new Handler<HttpServerRequest>() {
             public void handle(HttpServerRequest req) {
-                if (req.path.equals("/")) req.response.sendFile("src/html/ws.html"); // Serve the html
-                if (req.path.equals("/smoothie.js")) req.response.sendFile("src/js/smoothie.js"); // Serve the html
+                if (req.path.equals("/")) {
+                    req.response.sendFile("src/web/html/ws.html");
+                } else if (req.path.endsWith(".css")) {
+                    req.response.sendFile("src/web/css" + req.path);
+                } else if (req.path.endsWith(".js")) {
+                    req.response.sendFile("src/web/js" + req.path);
+                } else if (req.path.endsWith(".png")) {
+                    req.response.sendFile("src/web/css" + req.path);
+                }
             }
         }).listen(8080);
     }

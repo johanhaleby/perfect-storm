@@ -10,6 +10,8 @@ import com.jayway.perfectstorm.storm.bolt.countrycount.MostFrequentCountryPresen
 import com.jayway.perfectstorm.storm.bolt.countrycount.MostFrequentCountryPublisherBolt;
 import com.jayway.perfectstorm.storm.bolt.tps.CalculateTweetsPerSecondBolt;
 import com.jayway.perfectstorm.storm.bolt.tps.PrintTweetsPerSecondBolt;
+import com.jayway.perfectstorm.storm.bolt.tweetfind.FindTweetContainingStringBolt;
+import com.jayway.perfectstorm.storm.bolt.tweetfind.FoundTweetsPublisherBolt;
 import com.jayway.perfectstorm.storm.spout.TwitterStreamSpout;
 import com.jayway.perfectstorm.vertx.VertxServer;
 
@@ -48,6 +50,10 @@ public class Bootstrap {
         CalculateTweetsPerSecondBolt calculateTweetsPerSecondBolt = new CalculateTweetsPerSecondBolt();
         PrintTweetsPerSecondBolt printTweetsPerSecondBolt = new PrintTweetsPerSecondBolt();
 
+        // Tweets containing string
+        FindTweetContainingStringBolt findTweetContainingStringBolt = new FindTweetContainingStringBolt("test");
+        FoundTweetsPublisherBolt foundTweetsPublisherBolt = new FoundTweetsPublisherBolt();
+
 
         builder.setSpout("twitter-stream", twitterStreamSpout);
 
@@ -58,6 +64,9 @@ public class Bootstrap {
 
         builder.setBolt("tps-calc", calculateTweetsPerSecondBolt).shuffleGrouping("twitter-stream", "tweet-stream");
         builder.setBolt("tps-print", printTweetsPerSecondBolt).shuffleGrouping("tps-calc");
+
+        builder.setBolt("tweet-containing-string", findTweetContainingStringBolt).shuffleGrouping("twitter-stream", "tweet-stream");
+        builder.setBolt("found-tweet-publisher", foundTweetsPublisherBolt).shuffleGrouping("tweet-containing-string");
 
         Config conf = new Config();
         conf.setDebug(false);
