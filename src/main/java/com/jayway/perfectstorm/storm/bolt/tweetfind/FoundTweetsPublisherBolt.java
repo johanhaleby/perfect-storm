@@ -29,18 +29,20 @@ public class FoundTweetsPublisherBolt extends BaseRichBolt {
     public void execute(Tuple tuple) {
         final String tweet = tuple.getString(0);
         final String author = tuple.getString(1);
+        final String image = tuple.getString(2);
 
-        queue.offer(buildEvent(tweet, author));
+        queue.offer(buildEvent(tweet, author, image));
 
         outputCollector.ack(tuple);
     }
 
-    private Map<String, Object> buildEvent(String tweet, String author) {
+    private Map<String, Object> buildEvent(String tweet, String author, String image) {
         Map<String, Object> event = new HashMap<>();
 
         Map<String, Object> values = new HashMap<>();
         values.put("author", author);
         values.put("tweet", tweet);
+        values.put("image", image);
         event.put("eventName", "matching-tweets");
         event.put("data", values);
         return event;

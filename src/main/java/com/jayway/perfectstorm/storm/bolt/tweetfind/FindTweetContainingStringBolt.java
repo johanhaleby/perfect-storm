@@ -39,9 +39,11 @@ public class FindTweetContainingStringBolt extends BaseRichBolt {
     public void execute(Tuple tuple) {
         final String tweet = tuple.getString(0);
         final String author = tuple.getString(1);
+        final String image = tuple.getString(2);
+
         if (!StringUtils.isBlank(wordToLookFor) && StringUtils.containsIgnoreCase(tweet, wordToLookFor)) {
             System.out.printf("### Found tweet containing word '%s' (Tweet: '%s' by '%s')\n", wordToLookFor, tweet, author);
-            outputCollector.emit(tuple(tweet, author));
+            outputCollector.emit(tuple(tweet, author, image));
         }
 
         outputCollector.ack(tuple);
@@ -49,7 +51,7 @@ public class FindTweetContainingStringBolt extends BaseRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("tweet", "author"));
+        outputFieldsDeclarer.declare(new Fields("tweet", "author", "image"));
     }
 
     @Override

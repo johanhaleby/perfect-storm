@@ -31,7 +31,7 @@ public class TwitterStreamSpout extends BaseRichSpout {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declareStream("tweet-stream", new Fields("tweet", "author"));
+        outputFieldsDeclarer.declareStream("tweet-stream", new Fields("tweet", "author", "image"));
         outputFieldsDeclarer.declareStream("tweet-geo", new Fields("lat", "long"));
     }
 
@@ -62,8 +62,8 @@ public class TwitterStreamSpout extends BaseRichSpout {
             final double longitude = geoLocation.getLongitude();
             collector.emit("tweet-geo", tuple(latitude, longitude));
         }
-
-        collector.emit("tweet-stream", tuple(tweet.getText(), tweet.getUser().getName()));
+        final String image = tweet.getUser().getBiggerProfileImageURL();
+        collector.emit("tweet-stream", tuple(tweet.getText(), tweet.getUser().getName(), image));
     }
 
     @Override
