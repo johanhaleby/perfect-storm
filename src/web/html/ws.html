@@ -10,6 +10,7 @@
     <script type="text/javascript" src="smoothie.js"></script>
     <script type="text/javascript" src="jquery.fiji.ticker.js"></script>
     <script type="text/javascript" src="jquery.ba-throttle-debounce.min.js"></script>
+    <script type="text/javascript" src="jquery.highlight-4.js"></script>
     <script type="text/javascript">
         // Google Graph API
         google.load('visualization', '1', {packages: ['geochart']});
@@ -45,6 +46,25 @@
 
             topNumberOfTweetsPerCountry();
             var tweets = [];
+            var currentTweet = "";
+
+            var highlightTweetsWithText = function (text) {
+                if (text === "") {
+                    $('.tweet').removeHighlight();
+                } else {
+                    $('.tweet').highlight(text);
+                }
+            };
+
+            // TODO: This is ugly but it's a demo :)
+            var highlightTweetsEveryNowAndThen = function () {
+                setTimeout(function () {
+                    highlightTweetsWithText(currentTweet);
+                    highlightTweetsEveryNowAndThen();
+                }, 300);
+            };
+
+            highlightTweetsEveryNowAndThen();
 
             // Socket
             var socket;
@@ -99,7 +119,6 @@
                     if (tweet === undefined) {
                         return "<li></li>";
                     }
-
                     <!-- Note that Chrome doesn't show images from twitter correctly, it works in Firefox and Safari  -->
                     return '<li class="tweet">' +
                             '<div class="row-fluid">' +
@@ -116,9 +135,10 @@
             // Tweet filter
             $('#text').keyup($.debounce(250, function () {
                 var text = $(this).val();
+                currentTweet = text;
+                highlightTweetsWithText(text);
                 send(text);
             }));
-
         });
     </script>
 </head>
