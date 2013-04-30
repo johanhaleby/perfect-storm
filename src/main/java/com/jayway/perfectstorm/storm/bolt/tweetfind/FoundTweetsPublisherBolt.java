@@ -56,5 +56,4 @@ public class FoundTweetsPublisherBolt extends BaseRichBolt {
             hazelcast.getLifecycleService().shutdown();
         }
     }
-
 }

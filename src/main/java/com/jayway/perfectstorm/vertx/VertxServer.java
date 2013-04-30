@@ -2,6 +2,7 @@ package com.jayway.perfectstorm.vertx;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IQueue;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
 import org.vertx.java.core.buffer.Buffer;
@@ -24,12 +25,14 @@ public class VertxServer {
 
     private final ScheduledExecutorService executorService;
     private final HazelcastInstance hazelcast;
+    private final IQueue<Object> tweetWordQueue;
 
     public VertxServer() {
         hazelcast = Hazelcast.newHazelcastInstance();
         BlockingQueue<Map<String, Object>> tpsQueue = hazelcast.getQueue("tweets-per-second");
         BlockingQueue<Map<String, Object>> countryAndTweetFrequencyQueue = hazelcast.getQueue("country-frequency");
         BlockingQueue<Map<String, Object>> foundTweetsQueue = hazelcast.getQueue("found-tweets");
+        tweetWordQueue = hazelcast.getQueue("tweet-word");
         executorService = Executors.newScheduledThreadPool(2);
         executorService.scheduleAtFixedRate(new QueueBroadcaster(tpsQueue), 100, 50, MILLISECONDS);
         executorService.scheduleAtFixedRate(new QueueBroadcaster(countryAndTweetFrequencyQueue), 150, 50, MILLISECONDS);
@@ -51,7 +54,7 @@ public class VertxServer {
                     ws.dataHandler(new Handler<Buffer>() {
                         public void handle(Buffer data) {
                             final String message = data.toString();
-                            broadcast(message);
+                            tweetWordQueue.offer(message);
                         }
                     });
                     ws.endHandler(new Handler<Void>() {

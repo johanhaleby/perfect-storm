@@ -51,7 +51,7 @@ public class Bootstrap {
         PrintTweetsPerSecondBolt printTweetsPerSecondBolt = new PrintTweetsPerSecondBolt();
 
         // Tweets containing string
-        FindTweetContainingStringBolt findTweetContainingStringBolt = new FindTweetContainingStringBolt("test");
+        FindTweetContainingStringBolt findTweetContainingStringBolt = new FindTweetContainingStringBolt();
         FoundTweetsPublisherBolt foundTweetsPublisherBolt = new FoundTweetsPublisherBolt();
 
 
