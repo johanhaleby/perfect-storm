@@ -42,7 +42,7 @@ public class FindTweetContainingStringBolt extends BaseRichBolt {
         final String image = tuple.getString(2);
 
         if (!StringUtils.isBlank(wordToLookFor) && StringUtils.containsIgnoreCase(tweet, wordToLookFor)) {
-            System.out.printf("### Found tweet containing word '%s' (Tweet: '%s' by '%s')\n", wordToLookFor, tweet, author);
+            System.out.printf("Found tweet containing word '%s' (Tweet: '%s' by '%s')\n", wordToLookFor, tweet, author);
             outputCollector.emit(tuple(tweet, author, image));
         }
 
@@ -69,6 +69,7 @@ public class FindTweetContainingStringBolt extends BaseRichBolt {
             if (word == null) {
                 return;
             }
+            System.out.printf("Now searching for tweets containing '%s'.\n", word);
             wordToLookFor = word;
         }
     }
