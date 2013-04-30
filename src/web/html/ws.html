@@ -9,6 +9,7 @@
     <script type="text/javascript" src="jquery-ui-1.10.2.custom.min.js"></script>
     <script type="text/javascript" src="smoothie.js"></script>
     <script type="text/javascript" src="jquery.fiji.ticker.js"></script>
+    <script type="text/javascript" src="jquery.ba-throttle-debounce.min.js"></script>
     <script type="text/javascript">
         // Google Graph API
         google.load('visualization', '1', {packages: ['geochart']});
@@ -110,11 +111,12 @@
                 }
             });
 
-            // Page
-            $("#send-button").click(function () {
-                var text = $("#text").val();
+
+            // Tweet filter
+            $('#text').keyup($.debounce(250, function () {
+                var text = $(this).val();
                 send(text);
-            });
+            }));
 
         });
     </script>
@@ -144,10 +146,10 @@
         <div class="span6">
             <div class="row-fluid">
                 <div class="span12">
+                    <div style="float: left; margin-top: 4px;" class="lead">Search for tweets:&nbsp;</div>
                     <form class="form-search" style="margin-top: 5px" onsubmit="return false;">
-                        <input type="text" name="message" value="Hello, World!" x-webkit-speech id="text" style="height: 30px;"
+                        <input type="text" name="message" placeholder="Type here..." x-webkit-speech id="text" style="height: 30px;"
                                class="input-xlarge search-query"/>
-                        <input type="button" value="Send Web Socket Data" id="send-button" class="btn btn-primary"/>
                     </form>
                     <p id="row"/>
                 </div>
