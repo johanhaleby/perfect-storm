@@ -89,6 +89,7 @@ public class Bootstrap {
         }
 
         // Shutdown everything
+        cluster.killTopology("twitter-test");
         cluster.shutdown();
         EsperContext.shutdown();
         vertxServer.stop();
